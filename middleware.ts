@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req });
   const { pathname } = req.nextUrl;
+  console.log(token)
 
   // Allow public routes (no redirect)
   const publicPaths = ["/login", "/register", "/api", "/_next", "/favicon.ico"];

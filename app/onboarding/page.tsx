@@ -32,10 +32,13 @@ export default function OnboardingPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+    console.log(res)
 
     if (res.ok){
+      const ress=await update(); // 🔄 refresh session so session.user.hasOnboarded = true
+      console.log(ress)
       router.push("/Talk");
-      await update(); // 🔄 refresh session so session.user.hasOnboarded = true
+      
     } 
 
 

@@ -68,20 +68,33 @@ export const authOptions: AuthOptions = {
     strategy: "jwt" as SessionStrategy,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // When user logs in for the first time
       if (user) {
-        token.id = (user as any).id as string;
+        token.id = (user as any).id;
         token.name = user.name ?? undefined;
         token.email = user.email ?? undefined;
         token.hasOnboarded = (user as any).hasOnboarded ?? false;
       }
+  
+      // 🔄 When client calls `await update()` OR session refreshes
+      if (trigger === "update" || !user) {
+        try {
+          await connect();
+          const dbUser = await User.findById(token.id);
+          if (dbUser) {
+            token.hasOnboarded = dbUser.hasOnboarded;
+          }
+        } catch (err) {
+          console.error("Error syncing JWT from DB:", err);
+        }
+      }
+  
       return token;
     },
   
     async session({ session, token }) {
-      if (!session.user) {
-        session.user = {} as any;
-      }
+      if (!session.user) session.user = {} as any;
   
       session.user.id = token.id as string | undefined;
       session.user.name = token.name as string | null;
