@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎙️ TalkPair</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      font-family: sans-serif;
+      color: white;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    #findBtn { background: #22c55e; }
+    #endBtn { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🎙️ TalkPair</h2>
+    <p><strong>You:</strong> <span id="you">Loading...</span></p>
+    <p><strong>Partner:</strong> <span id="partner">Not connected</span></p>
+    <p><strong>Status:</strong> <span id="status">Connecting...</span></p>
+
+    <button id="findBtn">Find Partner</button>
+    <button id="endBtn">End Call</button>
+
+    <audio id="localAudio" autoplay muted></audio>
+    <audio id="remoteAudio" autoplay></audio>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const socket = io("https://server-09p9.onrender.com"); // ⚙️ your signaling server
+
+    const youEl = document.getElementById("you");
+    const partnerEl = document.getElementById("partner");
+    const statusEl = document.getElementById("status");
+    const findBtn = document.getElementById("findBtn");
+    const endBtn = document.getElementById("endBtn");
+    const localAudio = document.getElementById("localAudio");
+    const remoteAudio = document.getElementById("remoteAudio");
+
+    let pc = null;
+    let you = "User-" + Math.floor(Math.random() * 1000);
+    let partner = null;
+
+    youEl.textContent = you;
+    socket.emit("register", you);
+
+    socket.on("status", (msg) => (statusEl.textContent = msg));
+    socket.on("waiting", (msg) => (statusEl.textContent = msg));
+
+    socket.on("partner-found", async ({ partnerId, partnerName }) => {
+      partner = partnerId;
+      partnerEl.textContent = partnerName;
+      statusEl.textContent = "🤝 Connected with " + partnerName;
+      await startCall(true); // you initiate the offer
+    });
+
+    socket.on("signal", async (data) => {
+      if (!pc) await startCall(false);
+
+      if (data.type === "offer") {
+        await pc.setRemoteDescription(new RTCSessionDescription(data));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit("signal", answer);
+      } else if (data.type === "answer") {
+        await pc.setRemoteDescription(new RTCSessionDescription(data));
+      } else if (data.candidate) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (err) {
+          console.error("ICE candidate error", err);
+        }
+      }
+    });
+
+    socket.on("partner-left", () => {
+      statusEl.textContent = "❌ Partner left the call";
+      endCall();
+      partnerEl.textContent = "Not connected";
+    });
+
+    socket.on("call-ended", () => {
+      statusEl.textContent = "📞 Call ended";
+      endCall();
+      partnerEl.textContent = "Not connected";
+    });
+
+    findBtn.onclick = () => {
+      socket.emit("find-partner");
+      statusEl.textContent = "🔍 Searching for a partner...";
+    };
+
+    endBtn.onclick = () => {
+      endCall();
+      socket.emit("end-call");
+    };
+
+    async function startCall(isInitiator) {
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      localAudio.srcObject = stream;
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      pc.ontrack = (e) => {
+        remoteAudio.srcObject = e.streams[0];
+      };
+
+      pc.onicecandidate = (e) => {
+        if (e.candidate) socket.emit("signal", { candidate: e.candidate });
+      };
+
+      if (isInitiator) {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("signal", offer);
+      }
+    }
+
+    function endCall() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+    }
+  </script>
+</body>
+</html>
