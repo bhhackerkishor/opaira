@@ -5,6 +5,29 @@ import bcrypt from "bcryptjs";
 import connect from "@/utils/db";
 import User from "@/models/User";
 
+declare module "next-auth" {
+  interface User {
+    hasOnboarded?: boolean;
+  }
+
+  interface Session {
+    user: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      hasOnboarded?: boolean;
+    };
+  }
+
+  interface JWT {
+    id?: string;
+    name?: string;
+    email?: string;
+    hasOnboarded?: boolean;
+  }
+}
+
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -46,26 +69,29 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      // Runs whenever token is created or updated
       if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.hasOnboarded = user.hasOnboarded ?? false; // ✅ add explicitly
+        token.id = (user as any).id as string;
+        token.name = user.name ?? undefined;
+        token.email = user.email ?? undefined;
+        token.hasOnboarded = (user as any).hasOnboarded ?? false;
       }
       return token;
     },
   
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.hasOnboarded = token.hasOnboarded ?? false; // ✅ persist here too
+      if (!session.user) {
+        session.user = {} as any;
       }
+  
+      session.user.id = token.id as string | undefined;
+      session.user.name = token.name as string | null;
+      session.user.email = token.email as string | null;
+      session.user.hasOnboarded = token.hasOnboarded as boolean | undefined;
+  
       return session;
     },
   },
+  
   
   
 };

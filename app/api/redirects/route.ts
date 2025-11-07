@@ -2,7 +2,8 @@ import connect from "@/utils/db";
 import Redirect from "@/models/Redirect";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+
 
 export async function GET() {
   await connect();

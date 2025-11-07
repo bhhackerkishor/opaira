@@ -33,7 +33,7 @@ export default function DashboardPage() {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`/api/user/${session.user.email}`);
+        const res = await fetch(`/api/user/${session?.user?.email}`);
         if (!res.ok) throw new Error("Failed to fetch user data");
         const data = await res.json();
         setUser(data[0]);

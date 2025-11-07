@@ -43,40 +43,40 @@ function startCall() {
   // start your call logic
 }
   // Setup Socket.io
-  
   useEffect(() => {
     const s = io("https://server-09p9.onrender.com");
     setSocket(s);
-
+  
     const saved = localStorage.getItem("talk_settings");
     if (saved) setPrefs(JSON.parse(saved));
-    console.log("at talk",saved)
-
+    console.log("at talk", saved);
+  
     s.on("connect", () => setStatusMsg("✅ Connected to server"));
     s.on("disconnect", () => setStatusMsg("❌ Disconnected"));
     s.on("status", (msg: string) => setStatusMsg(msg));
+  
     s.on("waiting", (msg: string) => {
       setStatusMsg(msg);
       if (settings.soundEffects) playSearchingSound();
-
     });
-
+  
     s.on("partner-found", async ({ partnerId, partnerName, initiator }) => {
       stopSearchingSound();
+  
       if (settings.skipPreviousPartner && partnerId === lastPartnerId) {
         console.log("Skipping same partner...");
-        s.emit("skip-partner", { partnerId }); // optional
-        s.emit("find-partner"); // find a new one again
+        s.emit("skip-partner", { partnerId });
+        s.emit("find-partner");
         return;
       }
-      
+  
       setPartnerId(partnerId);
       setPartnerName(partnerName);
       setSearching(false);
       startCall();
       setInCall(true);
       setStatusMsg(`🎯 Matched with ${partnerName}`);
-
+  
       const localStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -88,30 +88,27 @@ function startCall() {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          channelCount: 2, // stereo if supported
+          channelCount: 2,
         },
       });
-      
-
+  
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
-
+  
       const pc = createPeerConnection(s, partnerId);
       pcRef.current = pc;
-
       localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-
+  
       if (initiator) {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         s.emit("signal", { to: partnerId, offer });
       }
     });
-
+  
     s.on("signal", async ({ from, offer, answer, candidate }) => {
       const pc = pcRef.current;
       if (!pc) return;
-
       if (offer) {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const ans = await pc.createAnswer();
@@ -124,24 +121,27 @@ function startCall() {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
       }
     });
-
+  
     s.on("partner-left", () => {
       setStatusMsg("⚠️ Partner left.");
       playEndSound();
       endCall();
-      
       if (settings.autoConnect) findPartner();
     });
-
+  
     s.on("call-ended", () => {
       setStatusMsg("📞 Call ended by partner.");
       playEndSound();
       endCall();
       if (settings.autoConnect) findPartner();
     });
-
-    return () => s.disconnect();
-  }, []);
+  
+    // ✅ Proper cleanup
+    return () => {
+      s.disconnect();
+    };
+  }, []); // ✅ Only one useEffect
+  
 
   // Register automatically with session name
   useEffect(() => {
