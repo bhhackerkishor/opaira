@@ -27,6 +27,7 @@ export default function TalkPage() {
     soundEffects: false,
     autoConnect: false,
   });
+  const [userCount, setUserCount] = useState(0);
   
 
 
@@ -54,6 +55,9 @@ function startCall() {
     s.on("connect", () => setStatusMsg("✅ Connected to server"));
     s.on("disconnect", () => setStatusMsg("❌ Disconnected"));
     s.on("status", (msg: string) => setStatusMsg(msg));
+    s.on("user-count", (count: number) => {
+  setUserCount(count);
+});
   
     s.on("waiting", (msg: string) => {
       setStatusMsg(msg);
@@ -260,6 +264,24 @@ function startCall() {
       {/* 🔸 Hide TalkConnect card when registered or in call */}
       
       <SettingsMenu /> 
+      
+
+<div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+  <div className="bg-black/60 text-white px-4 py-2 rounded-full shadow-md text-sm font-medium backdrop-blur-md">
+    <AnimatePresence mode="wait">
+      <motion.p
+        key={userCount}
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 5 }}
+        transition={{ duration: 0.3 }}
+        className="text-center"
+      >
+        👥 {userCount} {userCount === 1 ? "user" : "users"} online
+      </motion.p>
+    </AnimatePresence>
+  </div>
+</div>
   
 
 
