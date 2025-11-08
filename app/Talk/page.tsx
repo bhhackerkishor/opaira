@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, PhoneOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, PhoneOff ,UsersRound } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useUI } from "@/context/UIContext";
 import Image from 'next/image';
@@ -266,7 +266,7 @@ function startCall() {
       <SettingsMenu /> 
       
 
-<div className="fixed top-17 left-1/2 -translate-x-1/2 z-50">
+<div className="fixed top-10 left-1/2 -translate-x-1/2 z-50">
   <div className="bg-black/60 text-white px-4 py-2 rounded-full shadow-md text-sm font-medium backdrop-blur-md">
     <AnimatePresence mode="wait">
       <motion.p
@@ -277,7 +277,7 @@ function startCall() {
         transition={{ duration: 0.3 }}
         className="text-center"
       >
-        👥 {userCount} {userCount === 1 ? "user" : "users"} online
+        < UsersRound size={10} />{userCount} {userCount === 1 ? "user" : "users"} online
       </motion.p>
     </AnimatePresence>
   </div>
