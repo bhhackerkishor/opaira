@@ -6,6 +6,9 @@ import SessionProvider from "@/utils/SessionProvider";
 import Navbar from "@/components/Navbar";
 import Providers from "@/Providers";
 import { UIProvider } from "@/context/UIContext";
+import AutoTrackPageView from "@/components/AutoTrackPageView";
+
+
 
 
 
@@ -76,7 +79,10 @@ export default async function RootLayout({
 
             <Navbar />
             <Providers>
-            {children}
+            
+          {children}
+        <AutoTrackPageView/>
+            
             </Providers>
             </UIProvider>
          

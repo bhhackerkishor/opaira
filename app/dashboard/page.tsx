@@ -25,6 +25,7 @@ type UserData = {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
+  
   const [user, setUser] = useState<UserData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +46,7 @@ export default function DashboardPage() {
 
     fetchUser();
   }, [session?.user?.email]);
+   
 
   if (status === "loading" || !user)
     return (
@@ -150,8 +152,6 @@ export default function DashboardPage() {
         >
           {[
             { label: "Start Conversation", href: "/Talk", emoji: "🎙️" },
-            { label: "Daily Challenge", href: "/dashboard", emoji: "🔥" },
-            { label: "View Stats", href: "/dashboard", emoji: "📊" },
           ].map((btn, idx) => (
             <Link
               key={idx}

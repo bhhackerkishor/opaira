@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { trackEvent } from "@/lib/tracker";
+
 export default function OnboardingPage() {
+
   const [form, setForm] = useState({
     name: "",
     gender: "",
@@ -23,6 +24,7 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    
     e.preventDefault();
     setLoading(true);
     console.log(form);
@@ -32,7 +34,7 @@ export default function OnboardingPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    trackEvent("PAGE_VIEW")
+    
     console.log(res)
 
     if (res.ok){
@@ -155,7 +157,6 @@ export default function OnboardingPage() {
           <button
             type="submit"
             disabled={loading}
-            onClick={() => trackEvent("BUTTON_CLICK", { button: "Onboarding" })}
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 rounded-xl transition"
           >
             {loading ? "Saving..." : "Continue →"}

@@ -12,6 +12,7 @@ import SettingsMenu from "@/components/SettingsMenu";
 
 export default function TalkPage() {
   const { data: session }: any = useSession();
+  
   const [socket, setSocket] = useState<any>(null);
   const [registered, setRegistered] = useState(false);
   const [inCall, setInCall] = useState(false);

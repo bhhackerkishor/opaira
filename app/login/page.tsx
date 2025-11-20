@@ -8,6 +8,7 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 
 const NextLoginPage = () => {
+
   const router = useRouter();
   const integration=false;
   const [error, setError] = useState("");
@@ -18,6 +19,7 @@ const NextLoginPage = () => {
       router.replace("/dashboard");
     }
   }, [sessionStatus, router]);
+ 
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -133,6 +135,7 @@ const NextLoginPage = () => {
               <div>
                 <button
                   type="submit"
+                   
                   className="flex w-full border border-black justify-center rounded-md bg-black px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-white transition-colors hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Sign in

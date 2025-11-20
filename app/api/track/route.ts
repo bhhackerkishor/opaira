@@ -1,30 +1,24 @@
-import { NextResponse } from "next/server";
-import connect  from "@/utils/db";
-import Tracking from "@/models/Tracking";
+import { NextRequest, NextResponse } from "next/server";
+import connect from "@/utils/db";
+import TrackModel from "@/models/Tracking";
 
-export async function POST({req}:{req:any}) {
+export async function POST(req: NextRequest) {
   try {
     await connect();
-    const body = await req.json();
 
-    const { userId, eventName, page, data } = body;
+    const body = await req.json(); // <-- THIS fixes your error
 
-    // Validation
-    if (!userId || !eventName) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
-
-    // Save event
-    await Tracking.create({
-      userId,
-      eventName,
-      page,
-      data,
+    await TrackModel.create({
+      userId: body.userId,
+      eventName: body.eventName,
+      page: body.page,
+      data: body.data || {},
+      timestamp: new Date(),
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.log("Tracking error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (error) {
+    console.error("Tracking error:", error);
+    return NextResponse.json({ error: "Error saving event" }, { status: 500 });
   }
 }
