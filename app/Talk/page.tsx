@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import io from "socket.io-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, PhoneOff } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, PhoneOff ,UsersRound } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useUI } from "@/context/UIContext";
 import Image from 'next/image';
@@ -27,6 +27,7 @@ export default function TalkPage() {
     soundEffects: false,
     autoConnect: false,
   });
+  const [userCount, setUserCount] = useState(0);
   
 
 
@@ -54,6 +55,9 @@ function startCall() {
     s.on("connect", () => setStatusMsg("✅ Connected to server"));
     s.on("disconnect", () => setStatusMsg("❌ Disconnected"));
     s.on("status", (msg: string) => setStatusMsg(msg));
+    s.on("user-count", (count: number) => {
+  setUserCount(count);
+});
   
     s.on("waiting", (msg: string) => {
       setStatusMsg(msg);
@@ -260,6 +264,26 @@ function startCall() {
       {/* 🔸 Hide TalkConnect card when registered or in call */}
       
       <SettingsMenu /> 
+      
+
+<div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+  <AnimatePresence mode="wait">
+    <motion.div
+      key={userCount}
+      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="flex items-center gap-2 bg-gradient-to-r from-yellow-500/90 to-amber-600/90 text-white px-5 py-2 rounded-full shadow-lg backdrop-blur-md border border-yellow-400/40"
+    >
+      <UsersRound size={18} className="text-white drop-shadow-sm" />
+      <span className="font-semibold tracking-wide">
+        {userCount} {userCount === 1 ? "user" : "users"} online
+      </span>
+      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+    </motion.div>
+  </AnimatePresence>
+</div>
   
 
 
