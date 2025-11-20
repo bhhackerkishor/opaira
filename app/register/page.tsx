@@ -6,16 +6,24 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
+
+import { trackEvent } from '@/lib/tracker';
+
 const RegisterPage = () => {
   const [error, setError] = useState("");
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
+  
 
   useEffect(() => {
     if (sessionStatus === "authenticated") {
       router.replace("/dashboard");
     }
   }, [sessionStatus, router]);
+  useEffect(() => {
+    trackEvent("PAGE_VIEW", { page: "Register" });
+  }, [trackEvent]);
+
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -201,6 +209,7 @@ const RegisterPage = () => {
               <div>
                 <button
                   type="submit"
+                  onClick={() => trackEvent("BUTTON_CLICK", { button: "Sign up" })}
                   className="flex w-full border border-yellow justify-center rounded-md bg-black px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-white transition-colors hover:text-yellow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Sign up
